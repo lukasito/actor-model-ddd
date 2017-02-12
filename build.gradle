@@ -1,0 +1,22 @@
+plugins {
+    id 'scala'
+    id 'idea'
+}
+
+group 'org.jellysource'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.scala-lang:scala-library:2.11.8'
+    compile group: 'com.typesafe.akka', name: 'akka-actor_2.11', version: '2.4.16'
+
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = 3.3
+}
