@@ -2,9 +2,10 @@ package org.jellysource.domain.model
 
 import java.util.UUID
 
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{Actor, Props}
 import org.jellysource.domain.model.Person._
 import org.jellysource.domain.model.Validations.{AddressValidation, PhoneNumberValidation}
+import org.jellysource.domain.repository.PersonRepository.Store
 
 object Person {
 
@@ -24,7 +25,7 @@ object Person {
   case class SetLastName(lastName: String)
   case class SetAddress(address: String)
   case class SetPhoneNumber(phone: String)
-  case class GetPersonalInformation(replyTo: ActorRef)
+  case class Save()
 }
 
 class Person(id: UUID) extends Actor with AddressValidation with PhoneNumberValidation {
@@ -42,6 +43,6 @@ class Person(id: UUID) extends Actor with AddressValidation with PhoneNumberVali
     case SetLastName(ln) => this.personalInformation = personalInformation.copy(lastName = Some(ln))
     case SetAddress(a) => this.personalInformation = personalInformation.copy(address = Some(a))
     case SetPhoneNumber(pn) => this.personalInformation = personalInformation.copy(phoneNumber = Some(pn))
-    case GetPersonalInformation(actorRef) => actorRef ! personalInformation
+    case Save() => context.parent ! Store(this.personalInformation)
   }
 }

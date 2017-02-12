@@ -6,7 +6,7 @@ import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import org.jellysource.domain.model.Person
 import org.jellysource.domain.model.Person.{Init, PersonalInformation}
 import org.jellysource.domain.model.PersonEvents.{PersonCreated, PersonFound, PersonNotFound}
-import org.jellysource.domain.repository.PersonRepository.{Find, Store}
+import org.jellysource.domain.repository.PersonRepository.{Send, Store}
 import org.jellysource.infrastructure.InMemoryPersonRepository.InMemoryPerson
 
 object InMemoryPersonRepository {
@@ -39,7 +39,7 @@ class InMemoryPersonRepository extends Actor with ActorLogging {
   private var persons: Map[UUID, ActorRef] = Map.empty
 
   override def receive: Receive = {
-    case Find(uuid) =>
+    case Send(uuid, message) =>
       log.info("Finding actor..")
       inMemoryDatabase.find(p => p.id.equals(uuid)) match {
         case Some(person) =>
@@ -51,13 +51,12 @@ class InMemoryPersonRepository extends Actor with ActorLogging {
             case None =>
               log.info("Not found person actor in memory, registering new actor...")
               val pRef = context.actorOf(Person.props(uuid), uuid.toString)
+              log info "Initializing actor..."
+              pRef ! Init(person.personalInformation)
               persons += (uuid -> pRef)
               pRef
           }
-          log info "Initializing actor..."
-          personRef ! Init(person.personalInformation)
-          log info "Person found!"
-          sender ! PersonFound(personRef)
+          personRef.forward(message)
         case None =>
           log.info("Person not found!")
           sender ! PersonNotFound()

@@ -6,7 +6,7 @@ import org.jellysource.domain.model.Person.PersonalInformation
 
 object PersonRepository {
 
-  case class Find(personId: UUID)
+  case class Send(personId: UUID, message: Any)
 
   case class Store(personalInformation: PersonalInformation)
 
