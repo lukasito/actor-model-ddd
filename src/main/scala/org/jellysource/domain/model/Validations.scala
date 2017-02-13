@@ -3,13 +3,13 @@ package org.jellysource.domain.model
 object Validations {
 
   trait AddressValidation {
-    def validateAddress(address: Option[String]): Unit = {
+    def validateAddress(address: String): Unit = {
       // TODO
     }
   }
 
   trait PhoneNumberValidation {
-    def validatePhoneNumber(phoneNumber: Option[String]): Unit = {
+    def validatePhoneNumber(phoneNumber: String): Unit = {
       // TODO
     }
   }

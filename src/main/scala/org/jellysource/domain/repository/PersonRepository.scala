@@ -9,7 +9,6 @@ object PersonRepository {
   case class Send(personId: UUID, message: Any)
 
   case class Store(personalInformation: PersonalInformation)
-
 }
 
 

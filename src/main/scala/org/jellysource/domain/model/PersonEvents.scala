@@ -1,13 +1,13 @@
 package org.jellysource.domain.model
 
-import akka.actor.ActorRef
+import org.jellysource.domain.model.Person.PersonalInformation
 
 object PersonEvents {
 
-  case class PersonCreated(id: ActorRef)
+  case class Created(personalInformation: PersonalInformation)
 
-  case class PersonNotFound()
+  case class Updated(newInfo: PersonalInformation, oldInfo: PersonalInformation)
 
-  case class PersonFound(person: ActorRef)
+  case class Stored(personalInformation: PersonalInformation)
 
 }

@@ -2,47 +2,46 @@ package org.jellysource.domain.model
 
 import java.util.UUID
 
-import akka.actor.{Actor, Props}
+import akka.actor.{Actor, ActorRef, Props}
 import org.jellysource.domain.model.Person._
+import org.jellysource.domain.model.PersonEvents._
 import org.jellysource.domain.model.Validations.{AddressValidation, PhoneNumberValidation}
-import org.jellysource.domain.repository.PersonRepository.Store
+import org.jellysource.domain.repository.PersonRepository
 
 object Person {
 
-  def props(uuid: UUID): Props = {
-    Props(new Person(uuid))
+  def props(uuid: UUID, personRepository: ActorRef): Props = {
+    Props(new Person(uuid, personRepository))
   }
 
   case class PersonalInformation(
-    firstName: Option[String] = None,
-    lastName: Option[String] = None,
-    address: Option[String] = None,
-    phoneNumber: Option[String] = None
+    firstName: String,
+    lastName: String,
+    address: String,
+    phoneNumber: String
   )
 
-  case class Init(personalInformation: PersonalInformation)
-  case class SetFirstName(firstName: String)
-  case class SetLastName(lastName: String)
-  case class SetAddress(address: String)
-  case class SetPhoneNumber(phone: String)
-  case class Save()
+  case class Create(personalInformation: PersonalInformation)
+  case class Update(personalInformation: PersonalInformation)
+  case class Store()
 }
 
-class Person(id: UUID) extends Actor with AddressValidation with PhoneNumberValidation {
-  private var personalInformation = PersonalInformation()
+class Person(id: UUID, personRepository: ActorRef) extends Actor with AddressValidation with PhoneNumberValidation {
 
+  // TODO how to FIND from repo.
   override def receive: Receive = {
-    case Init(personalInfo) =>
+    case Create(personalInfo) =>
       validateAddress(personalInfo.address)
       validatePhoneNumber(personalInfo.phoneNumber)
-      context.become(initialized(personalInfo))
+      context.become(created(personalInfo))
+      sender ! Created(personalInfo)
   }
 
-  private def initialized(personalInformation: PersonalInformation): Receive = {
-    case SetFirstName(fn) => this.personalInformation = personalInformation.copy(firstName = Some(fn))
-    case SetLastName(ln) => this.personalInformation = personalInformation.copy(lastName = Some(ln))
-    case SetAddress(a) => this.personalInformation = personalInformation.copy(address = Some(a))
-    case SetPhoneNumber(pn) => this.personalInformation = personalInformation.copy(phoneNumber = Some(pn))
-    case Save() => context.parent ! Store(this.personalInformation)
+  private def created(personalInformation: PersonalInformation): Receive = {
+    case Update(newPersonalInfo) =>
+      context become created(newPersonalInfo)
+      sender ! Updated(newPersonalInfo, personalInformation)
+    case Store() =>
+      personRepository ! (PersonRepository.Store(personalInformation), sender)
   }
 }
