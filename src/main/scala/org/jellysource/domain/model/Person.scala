@@ -2,11 +2,10 @@ package org.jellysource.domain.model
 
 import java.util.UUID
 
-import akka.actor.{Actor, ActorRef, Props}
+import akka.actor.{Actor, Props}
 import org.jellysource.domain.model.Person._
 import org.jellysource.domain.model.PersonEvents._
 import org.jellysource.domain.model.Validations.{AddressValidation, PhoneNumberValidation}
-import org.jellysource.domain.repository.PersonRepository
 
 object Person {
 
