@@ -4,9 +4,9 @@ import java.util.UUID
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import org.jellysource.domain.model.Person
-import org.jellysource.domain.model.Person.PersonalInformation
-import org.jellysource.domain.model.PersonEvents.Stored
-import org.jellysource.domain.repository.PersonRepository.{Send, Store}
+import org.jellysource.domain.model.Person.{Create, PersonalInformation}
+import org.jellysource.domain.model.PersonEvents.{Stored, Updated}
+import org.jellysource.domain.repository.PersonRepository.Send
 import org.jellysource.infrastructure.InMemoryPersonRepository.InMemoryPerson
 
 object InMemoryPersonRepository {
@@ -46,18 +46,21 @@ class InMemoryPersonRepository extends Actor with ActorLogging {
               pRef
             case None =>
               log.info("Not found person actor in memory, registering new actor...")
-              val pRef = context.actorOf(Person.props(uuid, self), uuid.toString)
+              val pRef = context.actorOf(Person.props(uuid), uuid.toString)
               persons += (uuid -> pRef)
+              pRef ! Create(person.personalInformation)
               pRef
           }
-          personRef forward message
+          personRef ! message
         case None =>
           log.info("Person not found!")
       }
-    case Store(personalInformation) =>
+    case Updated(pi1, _) =>
+      // TOOD merge new with old
+      // STORE
       log.info("Storing personal information..")
       val personId = UUID.fromString(sender.path.name)
-      inMemoryDatabase ::= InMemoryPerson(personId, personalInformation)
-      sender ! Stored(personalInformation)
+      inMemoryDatabase ::= InMemoryPerson(personId, pi1)
+      sender ! Stored(pi1)
   }
 }

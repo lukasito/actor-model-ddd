@@ -10,8 +10,8 @@ import org.jellysource.domain.repository.PersonRepository
 
 object Person {
 
-  def props(uuid: UUID, personRepository: ActorRef): Props = {
-    Props(new Person(uuid, personRepository))
+  def props(uuid: UUID): Props = {
+    Props(new Person(uuid))
   }
 
   case class PersonalInformation(
@@ -23,12 +23,11 @@ object Person {
 
   case class Create(personalInformation: PersonalInformation)
   case class Update(personalInformation: PersonalInformation)
-  case class Store()
+  case class SetFirstName(firstName: String)
 }
 
-class Person(id: UUID, personRepository: ActorRef) extends Actor with AddressValidation with PhoneNumberValidation {
+class Person(id: UUID) extends Actor with AddressValidation with PhoneNumberValidation {
 
-  // TODO how to FIND from repo.
   override def receive: Receive = {
     case Create(personalInfo) =>
       validateAddress(personalInfo.address)
@@ -41,7 +40,9 @@ class Person(id: UUID, personRepository: ActorRef) extends Actor with AddressVal
     case Update(newPersonalInfo) =>
       context become created(newPersonalInfo)
       sender ! Updated(newPersonalInfo, personalInformation)
-    case Store() =>
-      personRepository ! (PersonRepository.Store(personalInformation), sender)
+    case SetFirstName(firstName) =>
+      val newInfo = personalInformation copy (firstName = firstName)
+      context become created(newInfo)
+      sender ! Updated(newInfo, personalInformation)
   }
 }
