@@ -49,8 +49,8 @@ aggregate from repository, do some stuff and commit changes with repository agai
 Akka **BUT** Ask pattern violates principle of _"Tell, Don't Ask"_ that fits actor model best.
 In Akka repositories might have different appearance. Instead of asking the repository for aggregate, you instruct 
 repository to send a message to that aggregate, so now repository will act a "manager". You inform repository, 
-that you want specific actor to process your message. The responsibility of repository is to locate that actor and 
-pass the message on.  
+that you want specific actor to process your message. The responsibility of repository is to locate that actor 
+(or create it) and pass the message on.  
 Since you want your implementation be part of infrastructure instead of domain, repositories in domain define only 
 message protocol like so:
 
