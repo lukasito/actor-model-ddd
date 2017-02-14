@@ -1,5 +1,5 @@
 #Domain driven design in actor model using akka
-This project tries to demonstrates how to design domain using actor model design.  
+This project tries to demonstrates how to design domain using actor model paradigm.  
 I was drawing knowledge from great book with title [Applied Akka Patterns](http://shop.oreilly.com/product/0636920043577.do)
 By Michael Nash and Wade Waldron.
 
