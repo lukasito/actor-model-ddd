@@ -3,23 +3,28 @@ package org.jellysource.infrastructure
 import java.util.UUID
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
+import org.jellysource.domain.events.DomainEventPublisher.Subscribe
+import org.jellysource.domain.events.PersonEvents.{Stored, Updated}
 import org.jellysource.domain.model.Person
 import org.jellysource.domain.model.Person.{Create, PersonalInformation}
-import org.jellysource.domain.model.PersonEvents.{Stored, Updated}
 import org.jellysource.domain.repository.PersonRepository.Send
 import org.jellysource.infrastructure.InMemoryPersonRepository.InMemoryPerson
 
 object InMemoryPersonRepository {
 
-  def props: Props = {
-    Props(new InMemoryPersonRepository)
+  def props(eventPublisher: ActorRef): Props = {
+    Props(new InMemoryPersonRepository(eventPublisher))
   }
 
   private case class InMemoryPerson(id: UUID, personalInformation: PersonalInformation)
 
 }
 
-class InMemoryPersonRepository extends Actor with ActorLogging {
+class InMemoryPersonRepository(eventPublisher: ActorRef) extends Actor with ActorLogging {
+
+  override def preStart(): Unit = {
+    eventPublisher ! Subscribe("person-events")
+  }
 
   private val person1: InMemoryPerson = InMemoryPerson(
     UUID.fromString("5bbd7d88-dfd4-4457-9706-50e26908aa07"),
@@ -46,7 +51,7 @@ class InMemoryPersonRepository extends Actor with ActorLogging {
               pRef
             case None =>
               log.info("Not found person actor in memory, registering new actor...")
-              val pRef = context.actorOf(Person.props(uuid), uuid.toString)
+              val pRef = context.actorOf(Person.props(uuid, eventPublisher), uuid.toString)
               persons += (uuid -> pRef)
               pRef ! Create(person.personalInformation)
               pRef
@@ -55,12 +60,12 @@ class InMemoryPersonRepository extends Actor with ActorLogging {
         case None =>
           log.info("Person not found!")
       }
-    case Updated(pi1, _) =>
+    case msg @ Updated(pi1, _) =>
       // TOOD merge new with old
       // STORE
       log.info("Storing personal information..")
-      val personId = UUID.fromString(sender.path.name)
+      val personId = UUID.fromString(msg.origin.path.name)
       inMemoryDatabase ::= InMemoryPerson(personId, pi1)
-      sender ! Stored(pi1)
+      eventPublisher ! Stored(pi1)
   }
 }
