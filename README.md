@@ -19,7 +19,7 @@ Are immutable - if their properties change, they become different value objects 
 In Akka **messages** send between actors are natural value objects e.g.  
 
 ```
-  object User {
+  object UserProtocol {
     case class SetName(name: String)
   }
 ```
