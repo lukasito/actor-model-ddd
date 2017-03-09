@@ -73,7 +73,12 @@ In Akka factories are very similar to repositories. Instead of Ask pattern, its 
 where factory will create given actor and pass message to newly created instance.  
 Because of its similarity to a repository, it doesn't make much sense to distinguish between them.
 
+#Domain event publisher
+Responsible for publishing domain events like person updated, or created etc.
+Its implemented as event bus.
+
 #TODO
+- [x] Commands and Events
+- [x] Domain event publisher
 - [ ] Domain Services
-- [ ] Commands and Events
 - [ ] Implement example of Domain Service

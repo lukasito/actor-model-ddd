@@ -1,5 +1,6 @@
 package org.jellysource.infrastructure
 
+import java.lang.Comparable
 import java.util.UUID
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
@@ -16,8 +17,20 @@ object InMemoryPersonRepository {
     Props(new InMemoryPersonRepository(eventPublisher))
   }
 
-  private case class InMemoryPerson(id: UUID, personalInformation: PersonalInformation)
+  private case class InMemoryPerson(id: UUID, personalInformation: PersonalInformation) {
+    override def hashCode(): Int = {
+      val prime = 19273
+      var result = 1
+      prime * result + id.hashCode
+    }
 
+    override def equals(obj: scala.Any): Boolean = {
+      obj match {
+        case InMemoryPerson(uuid, _) => id.equals(uuid)
+        case _ => false
+      }
+    }
+  }
 }
 
 class InMemoryPersonRepository(eventPublisher: ActorRef) extends Actor with ActorLogging {
@@ -36,7 +49,7 @@ class InMemoryPersonRepository(eventPublisher: ActorRef) extends Actor with Acto
     PersonalInformation("firstName2", "lastName2", "address2", "phoneNumber2")
   )
 
-  private var inMemoryDatabase: List[InMemoryPerson] = List(person1, person2)
+  private var inMemoryDatabase: Set[InMemoryPerson] = Set(person1, person2)
   private var persons: Map[UUID, ActorRef] = Map.empty
 
   override def receive: Receive = {
@@ -61,11 +74,9 @@ class InMemoryPersonRepository(eventPublisher: ActorRef) extends Actor with Acto
           log.info("Person not found!")
       }
     case msg @ Updated(pi1, _) =>
-      // TOOD merge new with old
-      // STORE
-      log.info("Storing personal information..")
       val personId = UUID.fromString(msg.origin.path.name)
-      inMemoryDatabase ::= InMemoryPerson(personId, pi1)
+      log.info(s"Storing personal information of person-id: ${personId.toString}")
+      inMemoryDatabase += InMemoryPerson(personId, pi1)
       eventPublisher ! Stored(pi1)
   }
 }

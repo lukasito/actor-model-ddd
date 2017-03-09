@@ -1,15 +1,18 @@
 package org.jellysource.domain.events
 
+import akka.actor.ActorRef
 import org.jellysource.domain.model.Person.PersonalInformation
 
 object PersonEvents {
 
-  trait PersonClassifier {
+  trait PersonEvent extends DomainEvent {
     val classifier: String = "person-events"
   }
 
-  case class Created(personalInformation: PersonalInformation) extends DomainEvent with PersonClassifier
-  case class Updated(newInfo: PersonalInformation, oldInfo: PersonalInformation) extends DomainEvent with PersonClassifier
-  case class Stored(personalInformation: PersonalInformation) extends DomainEvent with PersonClassifier
+  case class Created(personalInformation: PersonalInformation)(implicit val origin: ActorRef) extends PersonEvent
+
+  case class Updated(newInfo: PersonalInformation, oldInfo: PersonalInformation)(implicit val origin: ActorRef) extends PersonEvent
+
+  case class Stored(personalInformation: PersonalInformation)(implicit val origin: ActorRef) extends PersonEvent
 
 }

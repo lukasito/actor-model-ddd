@@ -30,7 +30,7 @@ class DomainEventPublisher extends Actor
 
   override def receive: Receive = {
     case domainEvent: DomainEvent =>
-      log info s"publishing event from: $sender, origin: ${domainEvent.origin()}"
+      log info s"publishing event from: $sender, origin: ${domainEvent.origin}"
       publish(domainEvent)
 
     case Subscribe(classifier) =>

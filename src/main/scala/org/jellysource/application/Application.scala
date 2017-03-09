@@ -1,6 +1,7 @@
 package org.jellysource.application
 
 import java.util.UUID
+import java.util.logging.Logger
 
 import akka.actor.{Actor, ActorLogging, ActorRef, ActorSystem, Props}
 import org.jellysource.domain.events.DomainEventPublisher
@@ -19,18 +20,19 @@ object Application extends App {
     }
 
     override def receive: Receive = {
-      case Stored(information) => log info information.toString
+      case event @ Stored(information) => log info s"${information.toString}, event origin ${event.origin}"
     }
   }
 
   val actorSystem = ActorSystem("personSystem")
   val domainEventPublisher = actorSystem.actorOf(Props(new DomainEventPublisher), "domainEventPublisher")
   val probe = actorSystem.actorOf(Props(new Probe(domainEventPublisher)), "probe")
-  val personRepositoryRef = actorSystem.actorOf(InMemoryPersonRepository.props(domainEventPublisher), "personRepository")
+  val personRepositoryRef = actorSystem.actorOf(InMemoryPersonRepository.props(domainEventPublisher), "persons")
 
   private val existingPerson = UUID.fromString("301f27c8-944b-4f35-8624-ce6900d27c94")
   private val notExistingPerson = UUID.randomUUID()
 
   personRepositoryRef ! Send(existingPerson, SetFirstName("some other name"))
-  personRepositoryRef ! Send(notExistingPerson, SetFirstName("some other name"))
+
+//  personRepositoryRef ! Send(notExistingPerson, SetFirstName("some other name"))
 }
